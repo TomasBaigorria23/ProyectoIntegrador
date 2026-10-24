@@ -1,6 +1,7 @@
 package modelo;
 
 import java.time.LocalDateTime;
+import excepciones.EstadoInvalidoException;
 
 public abstract class Pedido implements Rastreable, Facturable {
     
@@ -103,17 +104,17 @@ public abstract class Pedido implements Rastreable, Facturable {
             if (nuevoEstado.equals("EN_CAMINO") || nuevoEstado.equals("CANCELADO")) {
                 this.estado = nuevoEstado;
             } else {
-                // Más adelante cambiaremos esto por tu propia EstadoInvalidoException
-                throw new IllegalStateException("Transición inválida. De PENDIENTE solo puede pasar a EN_CAMINO o CANCELADO.");
+
+                throw new EstadoInvalidoException("Transición inválida. De PENDIENTE solo puede pasar a EN_CAMINO o CANCELADO.");
             }
         } else if (this.estado.equals("EN_CAMINO")) {
             if (nuevoEstado.equals("ENTREGADO")) {
                 this.estado = nuevoEstado;
             } else {
-                throw new IllegalStateException("Transición inválida. De EN_CAMINO solo puede pasar a ENTREGADO.");
+                throw new EstadoInvalidoException("Transición inválida. De EN_CAMINO solo puede pasar a ENTREGADO.");
             }
         } else {
-            throw new IllegalStateException("El pedido ya está " + this.estado + " y no puede cambiar de estado.");
+            throw new EstadoInvalidoException("El pedido ya está " + this.estado + " y no puede cambiar de estado.");
         }
     }
 }

@@ -1,5 +1,8 @@
 package modelo;
 
+import excepciones.AlmacenamientoLlenoException;
+import excepciones.CapacidadExcedidaException;
+
 public class Repartidor implements Rastreable, Facturable {
 
     private int legajo;
@@ -65,15 +68,15 @@ public class Repartidor implements Rastreable, Facturable {
     }
 
     // 1. Asignar pedido verificando capacidad y restricciones
-    public boolean asignarPedido(Pedido pedido) {
+    public boolean asignarPedido(Pedido pedido) throws CapacidadExcedidaException, AlmacenamientoLlenoException {
         if (pedido == null) {
             throw new IllegalArgumentException("El pedido no puede ser nulo.");
         }
         if (contadorPedidos >= MAX_PEDIDOS) {
-            throw new IllegalStateException("El repartidor alcanzó la capacidad máxima de pedidos.");
+            throw new AlmacenamientoLlenoException("El repartidor alcanzó la capacidad máxima de pedidos.");
         }
         if (!vehiculo.puedeTransportar(pedido)) {
-            throw new IllegalArgumentException("El vehículo no puede transportar este pedido.");
+            throw new CapacidadExcedidaException("El vehículo no puede transportar este pedido (supera capacidad o restricción de tipo).");
         }
 
         pedidos[contadorPedidos] = pedido;
@@ -83,7 +86,7 @@ public class Repartidor implements Rastreable, Facturable {
     }
 
     // 2. Sobrecarga del método asignarPedido (pauta del proyecto)
-    public boolean asignarPedido(Pedido pedido, Vehiculo vehiculoNuevo) {
+    public boolean asignarPedido(Pedido pedido, Vehiculo vehiculoNuevo) throws CapacidadExcedidaException, AlmacenamientoLlenoException {
         setVehiculo(vehiculoNuevo);
         return asignarPedido(pedido);
     }
