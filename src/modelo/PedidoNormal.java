@@ -16,6 +16,10 @@ public class PedidoNormal extends Pedido {
     public double calcularImporte() {
         // Requisito de la interfaz Facturable. 
         // Por ahora retorna 0 hasta que la clase Gestora le asigne definitivamente un vehículo.
+<<<<<<< HEAD
         return super.calcularImporte();
+=======
+        return 0;
+>>>>>>> f182ad15953dd2cd745528d1f34316c15cb63247
     }
 }
