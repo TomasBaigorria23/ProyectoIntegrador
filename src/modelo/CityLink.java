@@ -66,7 +66,48 @@ public class CityLink {
     }
 
     public void precargarDatos() {
-        // En construcción
+         try {
+        // 1. Cinco clientes
+        Cliente c1 = new Cliente(101, "Tomas Baigorria", "2657-1234", "Centro");
+        Cliente c2 = new Cliente(102, "Lautaro Kesler", "2657-5678", "Ribera");
+        Cliente c3 = new Cliente(103, "Lionel Messi", "2657-8080", "Estacion");
+        Cliente c4 = new Cliente(104, "Emiliano Martinez", "2657-5656", "Jardin Del Sur");
+        Cliente c5 = new Cliente(105, "Rodrigo De Paul", "2657-7886", "Microcentro");
+        registrarCliente(c1);
+        registrarCliente(c2);
+        registrarCliente(c3);
+        registrarCliente(c4);
+        registrarCliente(c5);
+        // 2. Tres repartidores (uno por tipo de vehículo)
+        Repartidor r1 = new Repartidor(1, "Franco Colapinto", new Bicicleta("BIC-01"));
+        Repartidor r2 = new Repartidor(2, "Lionel Scaloni", new Moto("MOT-02"));
+        Repartidor r3 = new Repartidor(3, "Pablo Aimar", new Camioneta("CAM-03"));
+        registrarRepartidor(r1);
+        registrarRepartidor(r2);
+        registrarRepartidor(r3);
+        // 3. Ocho pedidos (Normales, Urgentes y Frágiles)
+        Pedido p1 = new PedidoNormal(1, c1, "Av. Mitre 1200", 2.0, 4.0);
+        Pedido p2 = new PedidoUrgente(2, c2, "Pedernera 3400", 1.5, 6.0);
+        Pedido p3 = new PedidoFragil(3, c3, "Balcarce 500", 4.0, 3.5);
+        Pedido p4 = new PedidoNormal(4, c4, "9 De Julio 8000", 15.0, 10.0);
+        Pedido p5 = new PedidoUrgente(5, c5, "Belgrano 2000", 18.0, 8.0);
+        Pedido p6 = new PedidoFragil(6, c1, "Av. 25 De Mayo 1500", 22.0, 5.0);
+        Pedido p7 = new PedidoNormal(7, c2, "Av. Presidente Peron 450", 60.0, 14.0);
+        Pedido p8 = new PedidoUrgente(8, c3, "Europa 7000", 120.0, 18.0);
+        registrarPedido(p1);
+        registrarPedido(p2);
+        registrarPedido(p3);
+        registrarPedido(p4);
+        registrarPedido(p5);
+        registrarPedido(p6);
+        registrarPedido(p7);
+        registrarPedido(p8);
+        // Asignamos dos pedidos para demostrar cálculos con vehículo
+        asignarPedido(1, 1); // p1 asignado a Bici
+        asignarPedido(2, 2); // p2 asignado a Moto
+    } catch (Exception e) {
+        System.out.println("Error en precarga de datos: " + e.getMessage());
+    }
     }
     
     public void registrarRepartidor(Repartidor repartidor) throws AlmacenamientoLlenoException {
@@ -148,5 +189,43 @@ public Pedido buscarPedido(int codigo) {
 
         
         repartidor.asignarPedido(pedido);
+    }
+        public void cambiarEstadoPedido(int codigoPedido, String nuevoEstado)
+            throws PedidoInvalidoException, EstadoInvalidoException {
+        
+        Pedido pedido = buscarPedido(codigoPedido);
+        if (pedido == null) {
+            throw new PedidoInvalidoException("No se encontró ningún pedido con código: " + codigoPedido);
+        }
+
+        nuevoEstado = nuevoEstado.toUpperCase();
+
+        if (nuevoEstado.equals("ENTREGADO")) {
+            boolean registrado = false;
+            for (int i = 0; i < contadorRepartidores; i++) {
+                if (repartidores[i].registrarEntrega(codigoPedido)) {
+                    registrado = true;
+                    break;
+                }
+            }
+            if (!registrado) {
+                pedido.cambiarEstado(nuevoEstado);
+            }
+        } else {
+            pedido.cambiarEstado(nuevoEstado);
+        }
+    }
+    public Pedido[] getPedidos() {
+    return pedidos;
+}
+public int getContadorPedidos() {
+    return contadorPedidos;
+}
+    public Repartidor[] getRepartidores() {
+        return repartidores;
+    }
+
+    public int getContadorRepartidores() {
+        return contadorRepartidores;
     }
 }

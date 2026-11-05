@@ -33,20 +33,20 @@ public class Main {
                     asignarPedidoMenu(scanner, citylink);
                     break;
                 case 5:
-                    System.out.println("\n--- 5. Cambiar estado del pedido---");
+                    cambiarEstadoMenu(scanner, citylink);
                     break;
                 case 6:
                     buscarClienteMenu(scanner, citylink);
 
                     break;
                 case 7:
-                    System.out.println("\n--- 7. Listar Pedidos (En construcción) ---");
+                    listarPedidosMenu(citylink);
                     break;
                 case 8:
-                    System.out.println("\n--- 8. Consultar Estado Rastreable (En construcción) ---");
+                    consultarRastreableMenu(scanner, citylink);
                     break;
                 case 9:
-                    System.out.println("\n--- 9. Facturacion y Comisiones (En construcción) ---");
+                    verFacturacionMenu(citylink);
                     break;
                 case 10:
                     System.out.println("\nGracias por utilizar CityLink. Hasta luego!");
@@ -246,4 +246,131 @@ private static void asignarPedidoMenu(Scanner scanner, CityLink citylink) {
         System.out.println(" Proceso de asignación finalizado.");
     }
 }
+private static void cambiarEstadoMenu(Scanner scanner, CityLink citylink) {
+    System.out.println("\n--- CAMBIAR ESTADO DE UN PEDIDO ---");
+    int codPedido = leerEntero(scanner, "Ingrese código del pedido: ");
+
+    System.out.println("Seleccione el nuevo estado:");
+    System.out.println("1. EN_CAMINO");
+    System.out.println("2. ENTREGADO");
+    System.out.println("3. CANCELADO");
+    int opc = leerEntero(scanner, "Opción (1-3): ");
+
+    String nuevoEstado = "";
+    if (opc == 1) {
+        nuevoEstado = "EN_CAMINO";
+    } else if (opc == 2) {
+        nuevoEstado = "ENTREGADO";
+    } else if (opc == 3) {
+        nuevoEstado = "CANCELADO";
+    } else {
+        System.out.println(" Opción inválida.");
+        return;
+    }
+
+    try {
+        citylink.cambiarEstadoPedido(codPedido, nuevoEstado);
+        System.out.println(" Estado actualizado con éxito a: " + nuevoEstado);
+    } catch (PedidoInvalidoException e) {
+        System.out.println(" Error: " + e.getMessage());
+    } catch (EstadoInvalidoException e) {
+        System.out.println(" Transición no permitida: " + e.getMessage());
+    }
+}
+private static void listarPedidosMenu(CityLink citylink) {
+    System.out.println("\n************ LISTADO DE PEDIDOS (POLIMORFISMO) ************");
+    Pedido[] pedidos = citylink.getPedidos();
+    int total = citylink.getContadorPedidos();
+
+    if (total == 0) {
+        System.out.println("No hay pedidos registrados en el sistema.");
+        return;
+    }
+
+    for (int i = 0; i < total; i++) {
+        Pedido p = pedidos[i];
+        System.out.println("------------------------------------------------------------------");
+        System.out.println("Pedido #" + p.getCodigo() + " [" + p.getClass().getSimpleName() + "] - Estado: " + p.getEstado());
+        System.out.println("Cliente: " + p.getCliente().getNombre() + " | Destino: " + p.getDestino());
+        System.out.println("Peso: " + p.getPesokg() + " kg | Distancia: " + p.getDistanciakm() + " km");
+
+        Vehiculo v = p.getVehiculoAsignado();
+        if (v != null) {
+            
+            double costo = p.calcularCosto(v);
+            double tiempoMinutos = v.calcularTiempoEntrega(p.getDistanciakm());
+
+            System.out.println("Vehículo Asignado: " + v.getClass().getSimpleName() + " (Patente: " + v.getPatente() + ")");
+            System.out.printf("Costo de envío: $%.2f | Tiempo estimado: %.1f minutos\n", costo, tiempoMinutos);
+        } else {
+            System.out.println("Vehículo: Pendiente de asignación (Cálculo exacto al asignar vehículo)");
+        }
+    }
+    System.out.println("==================================================================");
+}
+    private static void consultarRastreableMenu(Scanner scanner, CityLink citylink) {
+        System.out.println("\n--- CONSULTAR ESTADO (INTERFAZ RASTREABLE) ---");
+        System.out.println("1. Rastrear Pedido");
+        System.out.println("2. Consultar Estado de Repartidor");
+        int opc = leerEntero(scanner, "Seleccione opción (1 o 2): ");
+
+        if (opc == 1) {
+            int cod = leerEntero(scanner, "Ingrese código de pedido: ");
+            Pedido pedido = citylink.buscarPedido(cod);
+            if (pedido != null) {
+                
+                Rastreable r = pedido;
+                System.out.println(" Pedido #" + cod + " -> Estado actual: " + r.obtenerEstadoActual());
+            } else {
+                System.out.println(" No se encontró pedido con código " + cod);
+            }
+        } else if (opc == 2) {
+            int legajo = leerEntero(scanner, "Ingrese legajo del repartidor: ");
+            Repartidor repartidor = citylink.buscarRepartidor(legajo);
+            if (repartidor != null) {
+                
+                Rastreable r = repartidor;
+                System.out.println(" Repartidor " + repartidor.getNombre() + " -> " + r.obtenerEstadoActual());
+            } else {
+                System.out.println(" No se encontró repartidor con legajo " + legajo);
+            }
+        } else {
+            System.out.println(" Opción inválida.");
+        }
+    }
+
+    private static void verFacturacionMenu(CityLink citylink) {
+        System.out.println("\n================ REPORTE DE FACTURACION Y COMISIONES ================");
+        
+        double totalFacturado = 0.0;
+        Pedido[] pedidos = citylink.getPedidos();
+        int cantPedidos = citylink.getContadorPedidos();
+
+        System.out.println("--- Importe Facturado por Pedidos con Vehículo ---");
+        for (int i = 0; i < cantPedidos; i++) {
+            Facturable f = pedidos[i];
+            double importe = f.calcularImporte();
+            if (importe > 0) {
+                System.out.printf("Pedido #%d (%s): $%.2f\n", 
+                    pedidos[i].getCodigo(), pedidos[i].getClass().getSimpleName(), importe);
+                totalFacturado += importe;
+            }
+        }
+        System.out.printf("TOTAL FACTURADO POR ENVIOS: $%.2f\n\n", totalFacturado);
+
+        double totalComisiones = 0.0;
+        Repartidor[] repartidores = citylink.getRepartidores();
+        int cantRepartidores = citylink.getContadorRepartidores();
+
+        System.out.println("--- Comisiones Ganadas por Repartidores (10% sobre entregados) ---");
+        for (int i = 0; i < cantRepartidores; i++) {
+            Facturable f = repartidores[i];
+            double comision = f.calcularImporte();
+            System.out.printf("Repartidor %s (Legajo %d): $%.2f\n", 
+                repartidores[i].getNombre(), repartidores[i].getLegajo(), comision);
+            totalComisiones += comision;
+        }
+        System.out.printf("TOTAL DE COMISIONES A PAGAR: $%.2f\n", totalComisiones);
+        System.out.println("====================================================================");
+    }
 }
