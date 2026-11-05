@@ -13,11 +13,7 @@ public abstract class Pedido implements Rastreable, Facturable {
     private double distanciakm;
     private LocalDateTime fechaHora;
     private String estado;
-<<<<<<< HEAD
     private Vehiculo vehiculoAsignado;
-=======
->>>>>>> f182ad15953dd2cd745528d1f34316c15cb63247
-
     // Constructor vacío
     public Pedido() {
         this.estado = "PENDIENTE";
@@ -99,9 +95,7 @@ public abstract class Pedido implements Rastreable, Facturable {
 
     // Método abstracto: Las subclases definirán cómo se calcula el costo base + recargos
     public abstract double calcularCosto(Vehiculo vehiculo);
-
-<<<<<<< HEAD
-    public Vehiculo getVehiculoAsignado() {
+        public Vehiculo getVehiculoAsignado() {
         return vehiculoAsignado;
     }
 
@@ -109,7 +103,6 @@ public abstract class Pedido implements Rastreable, Facturable {
         this.vehiculoAsignado = vehiculoAsignado;
     }
 
-    // Método de la interfaz Facturable (costo de envío cuando tiene vehículo asignado)
     @Override
     public double calcularImporte() {
         if (this.vehiculoAsignado != null) {
@@ -118,8 +111,7 @@ public abstract class Pedido implements Rastreable, Facturable {
         return 0.0;
     }
 
-=======
->>>>>>> f182ad15953dd2cd745528d1f34316c15cb63247
+
     // Método concreto para cambiar el estado validando reglas de negocio
     public void cambiarEstado(String nuevoEstado) {
         nuevoEstado = nuevoEstado.toUpperCase();

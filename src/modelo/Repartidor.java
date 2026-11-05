@@ -81,10 +81,7 @@ public class Repartidor implements Rastreable, Facturable {
 
         pedidos[contadorPedidos] = pedido;
         contadorPedidos++;
-<<<<<<< HEAD
         pedido.setVehiculoAsignado(this.vehiculo);
-=======
->>>>>>> f182ad15953dd2cd745528d1f34316c15cb63247
         pedido.cambiarEstado("EN_CAMINO");
         return true;
     }
