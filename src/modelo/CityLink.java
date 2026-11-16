@@ -1,5 +1,5 @@
 package modelo;
-
+import java.util.TreeMap;
 import excepciones.*;
 
 /**
@@ -9,10 +9,7 @@ import excepciones.*;
  */
 public class CityLink {
 
-    /** Capacidad máxima de clientes permitidos en el sistema */
-    public static final int MAX_CLIENTES = 50;
-    private Cliente[] clientes;
-    private int contadorClientes;
+    private TreeMap<Integer, Cliente> clientes;
 
     /** Capacidad máxima de repartidores permitidos en el sistema */
     public static final int MAX_REPARTIDORES = 10;
@@ -29,8 +26,7 @@ public class CityLink {
      * y los contadores en cero.
      */
     public CityLink() {
-        this.clientes = new Cliente[MAX_CLIENTES];
-        this.contadorClientes = 0;
+        this.clientes = new TreeMap<>();
         this.repartidores = new Repartidor[MAX_REPARTIDORES];
         this.contadorRepartidores = 0;
         this.pedidos = new Pedido[MAX_PEDIDOS];
@@ -42,88 +38,58 @@ public class CityLink {
     // ==========================================================
 
     /**
-     * Registra un cliente en el sistema verificando cupo máximo y código duplicado.
-     * 
-     * @param cliente Cliente a registrar.
-     * @throws AlmacenamientoLlenoException Si se supera el límite de 50 clientes.
-     * @throws IllegalArgumentException Si el cliente es nulo o su código ya existe.
+        * Registra un cliente en el sistema verificando duplicados por código.
      */
-    public void registrarCliente(Cliente cliente) throws AlmacenamientoLlenoException {
-        if (cliente == null) {
-            throw new IllegalArgumentException("El cliente no puede ser nulo.");
-        }
-        if (contadorClientes >= MAX_CLIENTES) {
-            throw new AlmacenamientoLlenoException("Capacidad máxima de clientes alcanzada (" + MAX_CLIENTES + ").");
-        }
-        for (int i = 0; i < contadorClientes; i++) {
-            if (clientes[i].getCodigo() == cliente.getCodigo()) {
-                throw new IllegalArgumentException("Ya existe un cliente con el código " + cliente.getCodigo());
-            }
-        }
-        clientes[contadorClientes] = cliente;
-        contadorClientes++;
+    // 1. REGISTRAR CLIENTE
+public void registrarCliente(Cliente cliente) {
+    if (cliente == null) {
+        throw new IllegalArgumentException("El cliente no puede ser nulo.");
     }
+    // TreeMap.containsKey verifica si ya existe el código en O(log n)
+    if (clientes.containsKey(cliente.getCodigo())) {
+        throw new IllegalArgumentException("Ya existe un cliente con el código " + cliente.getCodigo());
+    }
+    // Guardamos en el árbol: la clave es el código entero, el valor es el objeto Cliente
+    clientes.put(cliente.getCodigo(), cliente);
+}
 
-    /**
-     * Busca un cliente por su código numérico único.
-     * 
-     * @param codigo Código del cliente.
-     * @return Cliente encontrado.
-     * @throws ClienteNoEncontradoException Si no existe ningún cliente con ese código.
-     */
-    public Cliente buscarCliente(int codigo) throws ClienteNoEncontradoException {
-        for (int i = 0; i < contadorClientes; i++) {
-            if (clientes[i].getCodigo() == codigo) {
-                return clientes[i];
-            }
-        }
+// 2. BUSCAR POR CÓDIGO (Árbol)
+public Cliente buscarCliente(int codigo) throws ClienteNoEncontradoException {
+    Cliente c = clientes.get(codigo);
+    if (c == null) {
         throw new ClienteNoEncontradoException("No se encontró ningún cliente con el código: " + codigo);
     }
+    return c;
+}
 
-    /**
-     * Sobrecarga: Busca un cliente por su nombre de pila o razón social (sin distinguir mayúsculas).
-     * 
-     * @param nombre Nombre a buscar.
-     * @return Cliente encontrado.
-     * @throws ClienteNoEncontradoException Si no existe ningún cliente con ese nombre.
-     */
-    public Cliente buscarCliente(String nombre) throws ClienteNoEncontradoException {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new ClienteNoEncontradoException("El nombre no puede estar vacío.");
-        }
-        for (int i = 0; i < contadorClientes; i++) {
-            if (clientes[i].getNombre().equalsIgnoreCase(nombre.trim())) {
-                return clientes[i];
-            }
-        }
-        throw new ClienteNoEncontradoException("No se encontró ningún cliente con el nombre: " + nombre);
+// 3. BUSCAR POR NOMBRE (Búsqueda Lineal sobre los valores del árbol)
+public Cliente buscarCliente(String nombre) throws ClienteNoEncontradoException {
+    if (nombre == null || nombre.trim().isEmpty()) {
+        throw new ClienteNoEncontradoException("El nombre no puede estar vacío.");
     }
+    for (Cliente c : clientes.values()) {
+        if (c.getNombre().equalsIgnoreCase(nombre.trim())) {
+            return c;
+        }
+    }
+    throw new ClienteNoEncontradoException("No se encontró ningún cliente con el nombre: " + nombre);
+}
 
-    /**
-     * Elimina un cliente por su código, desplazando los elementos siguientes para no dejar huecos.
-     * 
-     * @param codigo Código del cliente a eliminar.
-     * @return true si se eliminó con éxito.
-     * @throws ClienteNoEncontradoException Si el cliente no existe.
-     */
-    public boolean eliminarCliente(int codigo) throws ClienteNoEncontradoException {
-        int indice = -1;
-        for (int i = 0; i < contadorClientes; i++) {
-            if (clientes[i].getCodigo() == codigo) {
-                indice = i;
-                break;
-            }
-        }
-        if (indice == -1) {
-            throw new ClienteNoEncontradoException("No se puede eliminar: cliente no encontrado.");
-        }
-        for (int i = indice; i < contadorClientes - 1; i++) {
-            clientes[i] = clientes[i + 1];
-        }
-        clientes[contadorClientes - 1] = null;
-        contadorClientes--;
-        return true;
+// 4. ELIMINAR CLIENTE (El árbol se rebalancea automáticamente)
+public boolean eliminarCliente(int codigo) throws ClienteNoEncontradoException {
+    if (!clientes.containsKey(codigo)) {
+        throw new ClienteNoEncontradoException("No se puede eliminar: cliente no encontrado.");
     }
+    clientes.remove(codigo);
+    return true;
+}
+
+// 5. OBTENER CLIENTES ORDENADOS
+// Como es un TreeMap, clientes.values() ya sale ordenado por código
+public TreeMap<Integer, Cliente> getClientes() {
+    return clientes;
+}
+       
 
     // ==========================================================
     //                 GESTIÓN DE REPARTIDORES
