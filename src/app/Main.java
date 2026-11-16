@@ -105,9 +105,7 @@ private static void registrarClienteMenu(Scanner scanner, CityLink citylink) {
         Cliente nuevoCliente = new Cliente(codigo, nombre, telefono, zona);
         citylink.registrarCliente(nuevoCliente);
         System.out.println(" Cliente registrado con éxito!");
-    } catch (AlmacenamientoLlenoException e) {
-        System.out.println(" Error: " + e.getMessage());
-    } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
         System.out.println(" Error en los datos: " + e.getMessage());
     }
 }
