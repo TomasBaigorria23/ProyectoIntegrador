@@ -1,6 +1,8 @@
 package modelo;
+import java.util.ArrayList;
 import java.util.TreeMap;
 import excepciones.*;
+
 
 /**
  * Gestor central del sistema CityLink.
@@ -9,29 +11,25 @@ import excepciones.*;
  */
 public class CityLink {
 
-    private TreeMap<Integer, Cliente> clientes;
-
-    /** Capacidad máxima de repartidores permitidos en el sistema */
-    public static final int MAX_REPARTIDORES = 10;
-    private Repartidor[] repartidores;
-    private int contadorRepartidores;
-
-    /** Capacidad máxima de pedidos permitidos en el sistema */
-    public static final int MAX_PEDIDOS = 100;
-    private Pedido[] pedidos;
-    private int contadorPedidos;
+private ArrayList<Repartidor> repartidores;
+private TreeMap<Integer, Cliente> clientes;
+private ArrayList<Pedido> pedidos;
+// Listas de turnos (para el algoritmo de intercalación de la cátedra):
+private ArrayList<Pedido> turnoManana;
+private ArrayList<Pedido> turnoTarde;
 
     /**
      * Constructor que inicializa los arreglos con sus capacidades máximas
      * y los contadores en cero.
      */
     public CityLink() {
-        this.clientes = new TreeMap<>();
-        this.repartidores = new Repartidor[MAX_REPARTIDORES];
-        this.contadorRepartidores = 0;
-        this.pedidos = new Pedido[MAX_PEDIDOS];
-        this.contadorPedidos = 0;
-    }
+    this.clientes = new TreeMap<>();
+    this.repartidores = new ArrayList<>();
+    this.pedidos = new ArrayList<>();
+    this.turnoManana = new ArrayList<>();
+    this.turnoTarde = new ArrayList<>();
+}
+    
 
     // ==========================================================
     //                   GESTIÓN DE CLIENTES
@@ -102,21 +100,19 @@ public TreeMap<Integer, Cliente> getClientes() {
      * @throws AlmacenamientoLlenoException Si se supera el límite de 10 repartidores.
      * @throws IllegalArgumentException Si el repartidor es nulo o su legajo ya existe.
      */
-    public void registrarRepartidor(Repartidor repartidor) throws AlmacenamientoLlenoException {
-        if (repartidor == null) {
-            throw new IllegalArgumentException("El repartidor no puede ser nulo.");
-        }
-        if (contadorRepartidores >= MAX_REPARTIDORES) {
-            throw new AlmacenamientoLlenoException("Capacidad máxima de repartidores alcanzada (" + MAX_REPARTIDORES + ").");
-        }
-        for (int i = 0; i < contadorRepartidores; i++) {
-            if (repartidores[i].getLegajo() == repartidor.getLegajo()) {
-                throw new IllegalArgumentException("Ya existe un repartidor con el legajo " + repartidor.getLegajo());
-            }
-        }
-        repartidores[contadorRepartidores] = repartidor;
-        contadorRepartidores++;
+   public void registrarRepartidor(Repartidor repartidor) throws AlmacenamientoLlenoException {
+    if (repartidor == null) {
+        throw new IllegalArgumentException("El repartidor no puede ser nulo.");
     }
+    // Revisamos si ya existe ese legajo en la lista
+    for (Repartidor r : repartidores) {
+        if (r.getLegajo() == repartidor.getLegajo()) {
+            throw new IllegalArgumentException("Ya existe un repartidor con el legajo " + repartidor.getLegajo());
+        }
+    }
+    // Lo agregamos a la lista dinámica
+    repartidores.add(repartidor);
+}
 
     /**
      * Busca un repartidor por su legajo.
@@ -124,14 +120,14 @@ public TreeMap<Integer, Cliente> getClientes() {
      * @param legajo Legajo numérico.
      * @return Repartidor encontrado o null si no existe.
      */
-    public Repartidor buscarRepartidor(int legajo) {
-        for (int i = 0; i < contadorRepartidores; i++) {
-            if (repartidores[i].getLegajo() == legajo) {
-                return repartidores[i];
-            }
+        public Repartidor buscarRepartidor(int legajo) {
+    for (Repartidor r : repartidores) {
+        if (r.getLegajo() == legajo) {
+            return r; // Lo encontró
         }
-        return null;
     }
+    return null; // No está en la lista
+}
 
     // ==========================================================
     //                   GESTIÓN DE PEDIDOS
@@ -145,32 +141,30 @@ public TreeMap<Integer, Cliente> getClientes() {
      * @throws PedidoInvalidoException Si los datos son inválidos, negativos o el código está duplicado.
      */
     public void registrarPedido(Pedido pedido) throws AlmacenamientoLlenoException, PedidoInvalidoException {
-        if (pedido == null) {
-            throw new PedidoInvalidoException("El pedido no puede ser nulo.");
-        }
-        if (contadorPedidos >= MAX_PEDIDOS) {
-            throw new AlmacenamientoLlenoException("Capacidad máxima de pedidos alcanzada (" + MAX_PEDIDOS + ").");
-        }
-        if (pedido.getCodigo() <= 0) {
-            throw new PedidoInvalidoException("El código de pedido debe ser mayor a cero.");
-        }
-        if (pedido.getPesokg() <= 0) {
-            throw new PedidoInvalidoException("El peso debe ser mayor a cero.");
-        }
-        if (pedido.getDistanciakm() <= 0) {
-            throw new PedidoInvalidoException("La distancia debe ser mayor a cero.");
-        }
-        if (pedido.getDestino() == null || pedido.getDestino().trim().isEmpty()) {
-            throw new PedidoInvalidoException("El destino del pedido no puede estar vacío.");
-        }
-        for (int i = 0; i < contadorPedidos; i++) {
-            if (pedidos[i].getCodigo() == pedido.getCodigo()) {
-                throw new PedidoInvalidoException("Ya existe un pedido con el código " + pedido.getCodigo());
-            }
-        }
-        pedidos[contadorPedidos] = pedido;
-        contadorPedidos++;
+    if (pedido == null) {
+        throw new PedidoInvalidoException("El pedido no puede ser nulo.");
     }
+    if (pedido.getCodigo() <= 0) {
+        throw new PedidoInvalidoException("El código de pedido debe ser mayor a cero.");
+    }
+    if (pedido.getPesokg() <= 0) {
+        throw new PedidoInvalidoException("El peso debe ser mayor a cero.");
+    }
+    if (pedido.getDistanciakm() <= 0) {
+        throw new PedidoInvalidoException("La distancia debe ser mayor a cero.");
+    }
+    if (pedido.getDestino() == null || pedido.getDestino().trim().isEmpty()) {
+        throw new PedidoInvalidoException("El destino del pedido no puede estar vacío.");
+    }
+    // Revisamos si ya existe el código en la lista
+    for (Pedido p : pedidos) {
+        if (p.getCodigo() == pedido.getCodigo()) {
+            throw new PedidoInvalidoException("Ya existe un pedido con el código " + pedido.getCodigo());
+        }
+    }
+    // Lo guardamos en la lista dinámica
+    pedidos.add(pedido);
+}
 
     /**
      * Busca un pedido por su código identificador.
@@ -179,13 +173,14 @@ public TreeMap<Integer, Cliente> getClientes() {
      * @return Pedido encontrado o null si no existe.
      */
     public Pedido buscarPedido(int codigo) {
-        for (int i = 0; i < contadorPedidos; i++) {
-            if (pedidos[i].getCodigo() == codigo) {
-                return pedidos[i];
-            }
+    for (Pedido p : pedidos) {
+        if (p.getCodigo() == codigo) {
+            return p; // Encontrado
         }
-        return null;
     }
+    return null; // No existe
+}
+    
 
     // ==========================================================
     //             ASIGNACIÓN Y CAMBIO DE ESTADOS
@@ -239,11 +234,11 @@ public TreeMap<Integer, Cliente> getClientes() {
         }
 
         nuevoEstado = nuevoEstado.toUpperCase();
-
+            
         if (nuevoEstado.equals("ENTREGADO")) {
             boolean registrado = false;
-            for (int i = 0; i < contadorRepartidores; i++) {
-                if (repartidores[i].registrarEntrega(codigoPedido)) {
+            for (Repartidor r : repartidores) {
+                if (r.registrarEntrega(codigoPedido)) {
                     registrado = true;
                     break;
                 }
@@ -264,34 +259,31 @@ public TreeMap<Integer, Cliente> getClientes() {
      * Obtiene el arreglo con los pedidos del sistema.
      * @return Arreglo de Pedido.
      */
-    public Pedido[] getPedidos() {
-        return pedidos;
-    }
+   
+    public ArrayList<Pedido> getPedidos() {
+    return pedidos;
+}
 
-    /**
-     * Obtiene la cantidad de pedidos cargados.
-     * @return Cantidad de pedidos activos.
-     */
-    public int getContadorPedidos() {
-        return contadorPedidos;
-    }
+public int getContadorPedidos() {
+    return pedidos.size();
+}
 
-    /**
-     * Obtiene el arreglo con los repartidores del sistema.
-     * @return Arreglo de Repartidor.
-     */
-    public Repartidor[] getRepartidores() {
-        return repartidores;
-    }
+public ArrayList<Repartidor> getRepartidores() {
+    return repartidores;
+}
 
-    /**
-     * Obtiene la cantidad de repartidores cargados.
-     * @return Cantidad de repartidores activos.
-     */
-    public int getContadorRepartidores() {
-        return contadorRepartidores;
-    }
+public int getContadorRepartidores() {
+    return repartidores.size();
+}
 
+// Getters de los turnos para el algoritmo de intercalación:
+public ArrayList<Pedido> getTurnoManana() {
+    return turnoManana;
+}
+
+public ArrayList<Pedido> getTurnoTarde() {
+    return turnoTarde;
+}
     // ==========================================================
     //               PRECARGA DE DATOS DE PRUEBA
     // ==========================================================

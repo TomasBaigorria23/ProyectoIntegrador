@@ -1,6 +1,7 @@
 package app;
 
 import java.util.Scanner;
+import java.util.ArrayList;
 import modelo.*;
 import excepciones.*;
 public class Main {
@@ -274,19 +275,16 @@ private static void cambiarEstadoMenu(Scanner scanner, CityLink citylink) {
     } catch (EstadoInvalidoException e) {
         System.out.println(" Transición no permitida: " + e.getMessage());
     }
-}
-private static void listarPedidosMenu(CityLink citylink) {
+}private static void listarPedidosMenu(CityLink citylink) {
     System.out.println("\n************ LISTADO DE PEDIDOS (POLIMORFISMO) ************");
-    Pedido[] pedidos = citylink.getPedidos();
-    int total = citylink.getContadorPedidos();
+    ArrayList<Pedido> pedidos = citylink.getPedidos();
 
-    if (total == 0) {
+    if (pedidos.isEmpty()) {
         System.out.println("No hay pedidos registrados en el sistema.");
         return;
     }
 
-    for (int i = 0; i < total; i++) {
-        Pedido p = pedidos[i];
+    for (Pedido p : pedidos) {
         System.out.println("------------------------------------------------------------------");
         System.out.println("Pedido #" + p.getCodigo() + " [" + p.getClass().getSimpleName() + "] - Estado: " + p.getEstado());
         System.out.println("Cliente: " + p.getCliente().getNombre() + " | Destino: " + p.getDestino());
@@ -294,7 +292,6 @@ private static void listarPedidosMenu(CityLink citylink) {
 
         Vehiculo v = p.getVehiculoAsignado();
         if (v != null) {
-            
             double costo = p.calcularCosto(v);
             double tiempoMinutos = v.calcularTiempoEntrega(p.getDistanciakm());
 
@@ -337,38 +334,35 @@ private static void listarPedidosMenu(CityLink citylink) {
         }
     }
 
-    private static void verFacturacionMenu(CityLink citylink) {
-        System.out.println("\n================ REPORTE DE FACTURACION Y COMISIONES ================");
-        
-        double totalFacturado = 0.0;
-        Pedido[] pedidos = citylink.getPedidos();
-        int cantPedidos = citylink.getContadorPedidos();
+  private static void verFacturacionMenu(CityLink citylink) {
+    System.out.println("\n================ REPORTE DE FACTURACION Y COMISIONES ================");
+    
+    double totalFacturado = 0.0;
+    ArrayList<Pedido> pedidos = citylink.getPedidos();
 
-        System.out.println("--- Importe Facturado por Pedidos con Vehículo ---");
-        for (int i = 0; i < cantPedidos; i++) {
-            Facturable f = pedidos[i];
-            double importe = f.calcularImporte();
-            if (importe > 0) {
-                System.out.printf("Pedido #%d (%s): $%.2f\n", 
-                    pedidos[i].getCodigo(), pedidos[i].getClass().getSimpleName(), importe);
-                totalFacturado += importe;
-            }
+    System.out.println("--- Importe Facturado por Pedidos con Vehículo ---");
+    for (Pedido p : pedidos) {
+        Facturable f = p;
+        double importe = f.calcularImporte();
+        if (importe > 0) {
+            System.out.printf("Pedido #%d (%s): $%.2f\n", 
+                p.getCodigo(), p.getClass().getSimpleName(), importe);
+            totalFacturado += importe;
         }
-        System.out.printf("TOTAL FACTURADO POR ENVIOS: $%.2f\n\n", totalFacturado);
-
-        double totalComisiones = 0.0;
-        Repartidor[] repartidores = citylink.getRepartidores();
-        int cantRepartidores = citylink.getContadorRepartidores();
-
-        System.out.println("--- Comisiones Ganadas por Repartidores (10% sobre entregados) ---");
-        for (int i = 0; i < cantRepartidores; i++) {
-            Facturable f = repartidores[i];
-            double comision = f.calcularImporte();
-            System.out.printf("Repartidor %s (Legajo %d): $%.2f\n", 
-                repartidores[i].getNombre(), repartidores[i].getLegajo(), comision);
-            totalComisiones += comision;
-        }
-        System.out.printf("TOTAL DE COMISIONES A PAGAR: $%.2f\n", totalComisiones);
-        System.out.println("====================================================================");
     }
+    System.out.printf("TOTAL FACTURADO POR ENVIOS: $%.2f\n\n", totalFacturado);
+
+    double totalComisiones = 0.0;
+    ArrayList<Repartidor> repartidores = citylink.getRepartidores();
+
+    System.out.println("--- Comisiones Ganadas por Repartidores (10% sobre entregados) ---");
+    for (Repartidor r : repartidores) {
+        Facturable f = r;
+        double comision = f.calcularImporte();
+        System.out.printf("Repartidor %s (Legajo %d): $%.2f\n", 
+            r.getNombre(), r.getLegajo(), comision);
+        totalComisiones += comision;
+    }
+    System.out.printf("TOTAL DE COMISIONES A PAGAR: $%.2f\n", totalComisiones);
+    System.out.println("====================================================================");
 }
