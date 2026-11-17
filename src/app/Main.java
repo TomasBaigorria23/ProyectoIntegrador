@@ -366,3 +366,5 @@ private static void cambiarEstadoMenu(Scanner scanner, CityLink citylink) {
     System.out.printf("TOTAL DE COMISIONES A PAGAR: $%.2f\n", totalComisiones);
     System.out.println("====================================================================");
 }
+}
+

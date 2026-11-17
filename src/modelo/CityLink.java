@@ -1,5 +1,6 @@
 package modelo;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.TreeMap;
 import excepciones.*;
 
@@ -17,7 +18,7 @@ private ArrayList<Pedido> pedidos;
 // Listas de turnos (para el algoritmo de intercalación de la cátedra):
 private ArrayList<Pedido> turnoManana;
 private ArrayList<Pedido> turnoTarde;
-
+private LinkedList<Pedido> colaPrioridad;
     /**
      * Constructor que inicializa los arreglos con sus capacidades máximas
      * y los contadores en cero.
@@ -28,6 +29,7 @@ private ArrayList<Pedido> turnoTarde;
     this.pedidos = new ArrayList<>();
     this.turnoManana = new ArrayList<>();
     this.turnoTarde = new ArrayList<>();
+    this.colaPrioridad = new LinkedList<>();
 }
     
 
@@ -180,7 +182,48 @@ public TreeMap<Integer, Cliente> getClientes() {
     }
     return null; // No existe
 }
-    
+        // ==========================================================
+    //            COLA DE PRIORIDAD (LINKEDLIST)
+    // ==========================================================
+
+    /**
+     * Encola un pedido con prioridad: los urgentes se ubican
+     * por delante de los normales y frágiles.
+     */
+    public void encolarPedido(Pedido pedido) {
+        if (pedido == null) {
+            throw new IllegalArgumentException("El pedido no puede ser nulo.");
+        }
+        if (pedido instanceof PedidoUrgente) {
+            // Buscamos la posición donde terminan los urgentes para insertarlo
+            int pos = 0;
+            while (pos < colaPrioridad.size() && colaPrioridad.get(pos) instanceof PedidoUrgente) {
+                pos++;
+            }
+            colaPrioridad.add(pos, pedido);
+        } else {
+            // Pedidos normales y frágiles van al final de la cola
+            colaPrioridad.addLast(pedido);
+        }
+    }
+
+    /**
+     * Despacha y retira el siguiente pedido con mayor prioridad de la cola.
+     * Retorna null si la cola está vacía.
+     */
+    public Pedido despacharSiguientePedido() {
+        if (colaPrioridad.isEmpty()) {
+            return null;
+        }
+        return colaPrioridad.poll(); // Extrae el primer elemento en O(1)
+    }
+
+    /**
+     * Obtiene la cola de prioridad actual.
+     */
+    public LinkedList<Pedido> getColaPrioridad() {
+        return colaPrioridad;
+    }
 
     // ==========================================================
     //             ASIGNACIÓN Y CAMBIO DE ESTADOS
