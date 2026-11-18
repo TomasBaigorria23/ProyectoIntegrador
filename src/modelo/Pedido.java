@@ -160,6 +160,16 @@ public abstract class Pedido implements Rastreable, Facturable {
     }
 
     /**
+     * Establece o restaura directamente el estado del pedido.
+     * Utilizado para la reversión de transiciones de estado desde la pila de deshacer (Undo).
+     * 
+     * @param estado Estado a restaurar (PENDIENTE, EN_CAMINO, ENTREGADO, CANCELADO).
+     */
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    /**
      * Implementación de {@link Rastreable}: retorna el estado actual del envío.
      * @return Cadena que representa el estado actual.
      */

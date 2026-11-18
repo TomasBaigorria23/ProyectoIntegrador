@@ -2,8 +2,11 @@ package app;
 
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.List;
 import modelo.*;
 import excepciones.*;
+import algoritmos.*;
+
 public class Main {
     public static void main(String[] args){
         CityLink citylink = new CityLink();
@@ -19,7 +22,7 @@ public class Main {
         ///Menu principal
          while(!salir){
             mostrarMenu();
-            int opcion = leerEntero(scanner, "Seleccione una opcion (1-10):");
+            int opcion = leerEntero(scanner, "Seleccione una opcion (1-15): ");
             switch(opcion){
                 case 1:
                     registrarClienteMenu(scanner, citylink);
@@ -38,7 +41,6 @@ public class Main {
                     break;
                 case 6:
                     buscarClienteMenu(scanner, citylink);
-
                     break;
                 case 7:
                     listarPedidosMenu(citylink);
@@ -50,21 +52,38 @@ public class Main {
                     verFacturacionMenu(citylink);
                     break;
                 case 10:
-                    System.out.println("\nGracias por utilizar CityLink. Hasta luego!");
+                    deshacerUltimaAccionMenu(citylink);
+                    break;
+                case 11:
+                    ordenarPedidosMenu(scanner, citylink);
+                    break;
+                case 12:
+                    intercalarTurnosMenu(citylink);
+                    break;
+                case 13:
+                    despacharPedidoPrioritarioMenu(citylink);
+                    break;
+                case 14:
+                    buscarPedidoMenu(scanner, citylink);
+                    break;
+                case 15:
+                    System.out.println("\nGracias por utilizar CityLink. ¡Hasta luego!");
                     salir = true;
                     break;
                 default:
-                    System.out.println("Opcion no valida. Debe ingresar un numero del 1 al 10.\n");
+                    System.out.println("Opcion no valida. Debe ingresar un numero del 1 al 15.\n");
                     break;
             }
         }
         scanner.close();
-            }
+    }
     
 
     
 private static void mostrarMenu() {
-        System.out.println ("\n--- Menu Principal ---");
+        System.out.println("\n==================================================");
+        System.out.println("                 MENU PRINCIPAL                   ");
+        System.out.println("==================================================");
         System.out.println("1.  Registrar cliente");
         System.out.println("2.  Registrar repartidor con su vehiculo");
         System.out.println("3.  Registrar pedido (normal, urgente o fragil)");
@@ -74,8 +93,12 @@ private static void mostrarMenu() {
         System.out.println("7.  Listar pedidos con costo y tiempo estimado");
         System.out.println("8.  Consultar estado (Rastreable)");
         System.out.println("9.  Ver facturacion e importe de comisiones");
-        System.out.println("10. Salir");
-        
+        System.out.println("10. Deshacer última acción (Undo - ArrayDeque)");
+        System.out.println("11. Ordenar pedidos (Burbuja / QuickSort)");
+        System.out.println("12. Intercalar turnos de pedidos (Mañana y Tarde)");
+        System.out.println("13. Atender/Despachar pedido prioritario (Cola LinkedList)");
+        System.out.println("14. Búsqueda de pedido (Lineal y Binaria)");
+        System.out.println("15. Salir");
 }
 
 private static int leerEntero(Scanner scanner, String mensaje){
@@ -365,6 +388,134 @@ private static void cambiarEstadoMenu(Scanner scanner, CityLink citylink) {
     }
     System.out.printf("TOTAL DE COMISIONES A PAGAR: $%.2f\n", totalComisiones);
     System.out.println("====================================================================");
+}
+
+private static void deshacerUltimaAccionMenu(CityLink citylink) {
+    System.out.println("\n--- DESHACER ULTIMA ACCION (UNDO CON ARRAYDEQUE) ---");
+    if (citylink.getPilaDeshacer().isEmpty()) {
+        System.out.println("No hay acciones previas en la pila para deshacer.");
+        return;
+    }
+    System.out.println("Acción en el tope de la pila: " + citylink.getPilaDeshacer().peek());
+    Operacion deshecha = citylink.deshacerUltimaAccion();
+    if (deshecha != null) {
+        System.out.println("✅ Operación revertida con éxito: " + deshecha);
+        System.out.println("Acciones restantes en la pila: " + citylink.getPilaDeshacer().size());
+    }
+}
+
+private static void ordenarPedidosMenu(Scanner scanner, CityLink citylink) {
+    System.out.println("\n--- ORDENAMIENTO DE PEDIDOS (ALGORITMOS) ---");
+    ArrayList<Pedido> pedidos = citylink.getPedidos();
+    if (pedidos.isEmpty()) {
+        System.out.println("No hay pedidos registrados en el sistema.");
+        return;
+    }
+
+    System.out.println("Seleccione el algoritmo a utilizar:");
+    System.out.println("1. Burbuja (Bubble Sort) - Complejidad O(n²)");
+    System.out.println("2. QuickSort (Recursivo) - Complejidad O(n log n)");
+    int alg = leerEntero(scanner, "Opción (1 o 2): ");
+
+    System.out.println("\nSeleccione el criterio de ordenamiento:");
+    System.out.println("1. Por Costo de envío (Importe facturable)");
+    System.out.println("2. Por Distancia (km)");
+    System.out.println("3. Por Fecha y hora de registro");
+    int crit = leerEntero(scanner, "Opción (1-3): ");
+
+    ArrayList<Pedido> copia = new ArrayList<>(pedidos);
+
+    long inicio = System.nanoTime();
+    if (alg == 1) {
+        Ordenamiento.ordenarBurbuja(copia, crit);
+        long fin = System.nanoTime();
+        System.out.println("\n--- PEDIDOS ORDENADOS CON MÉTODO BURBUJA (Tiempo: " + (fin - inicio) + " ns) ---");
+    } else if (alg == 2) {
+        Ordenamiento.ordenarQuicksort(copia, crit);
+        long fin = System.nanoTime();
+        System.out.println("\n--- PEDIDOS ORDENADOS CON MÉTODO QUICKSORT (Tiempo: " + (fin - inicio) + " ns) ---");
+    } else {
+        System.out.println("Opción de algoritmo no válida.");
+        return;
+    }
+
+    for (Pedido p : copia) {
+        System.out.printf("Pedido #%d [%s] - Cliente: %s | Distancia: %.1f km | Importe: $%.2f | Fecha: %s\n",
+            p.getCodigo(), p.getClass().getSimpleName(), p.getCliente().getNombre(),
+            p.getDistanciakm(), p.calcularImporte(), p.getFechaHora().toString());
+    }
+}
+
+private static void intercalarTurnosMenu(CityLink citylink) {
+    System.out.println("\n--- INTERCALACIÓN DE TURNOS (MERGE O(n + m)) ---");
+    ArrayList<Pedido> manana = citylink.getTurnoManana();
+    ArrayList<Pedido> tarde = citylink.getTurnoTarde();
+
+    System.out.println("Turno Mañana (Ordenado por código):");
+    for (Pedido p : manana) {
+        System.out.println("  • Pedido #" + p.getCodigo() + " - " + p.getCliente().getNombre() + " (" + p.getDestino() + ")");
+    }
+
+    System.out.println("\nTurno Tarde (Ordenado por código):");
+    for (Pedido p : tarde) {
+        System.out.println("  • Pedido #" + p.getCodigo() + " - " + p.getCliente().getNombre() + " (" + p.getDestino() + ")");
+    }
+
+    List<Pedido> intercalados = Intercalacion.intercalarPorCodigo(manana, tarde);
+
+    System.out.println("\nLista Unificada Intercalada (en una sola pasada O(n + m)):");
+    for (Pedido p : intercalados) {
+        System.out.println("  ➜ Pedido #" + p.getCodigo() + " [" + p.getClass().getSimpleName() + "] - " + p.getCliente().getNombre() + " (" + p.getDestino() + ")");
+    }
+}
+
+private static void despacharPedidoPrioritarioMenu(CityLink citylink) {
+    System.out.println("\n--- COLA DE PRIORIDAD (LINKEDLIST) ---");
+    if (citylink.getColaPrioridad().isEmpty()) {
+        System.out.println("La cola de prioridad está vacía.");
+        return;
+    }
+
+    System.out.println("Pedidos actualmente en cola de prioridad (" + citylink.getColaPrioridad().size() + "):");
+    for (Pedido p : citylink.getColaPrioridad()) {
+        System.out.println("  • Pedido #" + p.getCodigo() + " [" + p.getClass().getSimpleName() + "] - " + p.getCliente().getNombre());
+    }
+
+    Pedido despachado = citylink.despacharSiguientePedido();
+    if (despachado != null) {
+        System.out.println("\n✅ Pedido despachado con mayor prioridad:");
+        System.out.println("  ➜ Pedido #" + despachado.getCodigo() + " [" + despachado.getClass().getSimpleName() + "] para " + despachado.getCliente().getNombre());
+        System.out.println("Pedidos restantes en la cola: " + citylink.getColaPrioridad().size());
+    }
+}
+
+private static void buscarPedidoMenu(Scanner scanner, CityLink citylink) {
+    System.out.println("\n--- BÚSQUEDA DE PEDIDOS (ALGORITMOS) ---");
+    System.out.println("1. Búsqueda Lineal (O(n))");
+    System.out.println("2. Búsqueda Binaria (O(log n) - Requiere lista ordenada por código)");
+    int tipo = leerEntero(scanner, "Seleccione método (1 o 2): ");
+
+    int codigo = leerEntero(scanner, "Ingrese código del pedido a buscar: ");
+    Pedido encontrado = null;
+
+    if (tipo == 1) {
+        encontrado = Busqueda.busquedaLinealPedido(citylink.getPedidos(), codigo);
+    } else if (tipo == 2) {
+        ArrayList<Pedido> copiaOrdenada = new ArrayList<>(citylink.getPedidos());
+        Ordenamiento.ordenarQuicksort(copiaOrdenada, 0); // criterio default: por código
+        encontrado = Busqueda.busquedaBinariaPedido(copiaOrdenada, codigo);
+    } else {
+        System.out.println("Opción inválida.");
+        return;
+    }
+
+    if (encontrado != null) {
+        System.out.println("✅ Pedido encontrado: Pedido #" + encontrado.getCodigo() + 
+            " [" + encontrado.getClass().getSimpleName() + "] - Cliente: " + 
+            encontrado.getCliente().getNombre() + " - Estado: " + encontrado.getEstado());
+    } else {
+        System.out.println("❌ No se encontró ningún pedido con código: " + codigo);
+    }
 }
 }
 
