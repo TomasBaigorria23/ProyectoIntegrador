@@ -179,6 +179,33 @@ public class Repartidor implements Rastreable, Facturable {
     }
 
     /**
+     * Remueve un pedido asignado al repartidor por su código.
+     * Desplaza los elementos restantes hacia la izquierda para mantener la contigüidad.
+     * Utilizado para revertir asignaciones en la pila de deshacer (Undo).
+     * 
+     * @param codigoPedido Código del pedido a desasignar.
+     * @return true si el pedido fue encontrado y removido; false en caso contrario.
+     */
+    public boolean removerPedido(int codigoPedido) {
+        int indice = -1;
+        for (int i = 0; i < contadorPedidos; i++) {
+            if (pedidos[i].getCodigo() == codigoPedido) {
+                indice = i;
+                break;
+            }
+        }
+        if (indice == -1) {
+            return false;
+        }
+        for (int j = indice; j < contadorPedidos - 1; j++) {
+            pedidos[j] = pedidos[j + 1];
+        }
+        pedidos[contadorPedidos - 1] = null;
+        contadorPedidos--;
+        return true;
+    }
+
+    /**
      * Implementación de {@link Facturable}: Calcula la comisión del 10%
      * sobre el costo de los pedidos que fueron efectivamente entregados.
      * 
