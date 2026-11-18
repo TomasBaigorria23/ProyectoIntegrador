@@ -4,7 +4,7 @@
 ---
 
 ### 👤 Datos del Autor y Equipo
-* **Estudiante:** Matias Figueroa
+* **Estudiantes:** Matias Figueroa, Tomas Baigorria, Lautaro Kesler
 * **Equipo de Desarrollo:** Tomas Baigorria, Lautaro Kesler, Matias Figueroa
 * **Materia:** Programación I (2026)
 * **Repositorio Git:** `MatiasFigueroa` (Entregable 2)
